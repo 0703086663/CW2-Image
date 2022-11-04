@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -22,7 +23,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    protected static final String fileName = "list.txt";
+    protected static final String fileName = "list_img.txt";
 
     private ArrayList<String> imgList;
 
@@ -52,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
 
         loadImg();
 
+        ImageButton btnCamera = findViewById(R.id.btnCamera);
+        btnCamera.setOnClickListener(v -> cameraClicked());
+
     }
 
     public ArrayList<String> getImgList(){
@@ -66,7 +70,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadImg(){
-        Picasso.get().load(imgList.get(currentIndex)).into(imgView);
+        if (imgList == null || imgList.size() == 0) {
+            Toast.makeText(this, "No image available !!!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(imgList.get(currentIndex).contains("https")){
+            Picasso.get().load(imgList.get(currentIndex)).into(imgView);
+        } else {
+            //imgView.setImageBitmap(imgList.get(currentIndex));
+        }
         imgIndex.setText("Image "+ (currentIndex + 1));
     }
 
@@ -91,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
     private void getImageListFromFile(ArrayList<String> imageList) {
         try {
             InputStream inputStream = openFileInput(fileName);
-            System.out.println("FILEEEEEE"+this.getFileStreamPath(fileName).getAbsolutePath());
 
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -122,7 +133,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK && requestCode == 123) {
             addImgToList(data.getStringExtra("link"));
-        } else {
+        } else if(resultCode == Activity.RESULT_OK && requestCode == 456){
+            Bitmap photo = data.getParcelableExtra("photo");
+            savePhotoToFile(photo);
+        }
+        else {
             Toast.makeText(this, "Add failure !!!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -144,5 +159,16 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public void cameraClicked(){
+        Intent intent = new Intent(this, CameraActivity.class);
+        intent.putExtra("title", "Take photo");
+        startActivityForResult(intent, 456);
+    }
+
+    private void savePhotoToFile(Bitmap photo){
+        //imgList.add(photo);
+        Toast.makeText(this, "Photo" + photo, Toast.LENGTH_SHORT).show();
     }
 }
