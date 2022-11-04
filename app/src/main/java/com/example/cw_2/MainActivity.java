@@ -2,9 +2,13 @@ package com.example.cw_2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -14,16 +18,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    protected static final String fileName = "cw_2_image_list.txt";
+    protected static final String fileName = "list.txt";
 
     private ArrayList<String> imgList;
 
     private ImageView imgView;
-    private Button btnNext, btnPrev;
     private int currentIndex;
+    private TextView imgIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +36,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         imgView = findViewById(R.id.imageView);
-        btnNext = findViewById(R.id.btnNext);
-        btnPrev = findViewById(R.id.btnPrev);
+        imgIndex = findViewById(R.id.imgIndex);
+
+        Button btnNext = findViewById(R.id.btnNext);
+        Button btnPrev = findViewById(R.id.btnPrev);
 
         btnNext.setOnClickListener(v -> nextImg());
         btnPrev.setOnClickListener(v -> prevImg());
+
+        ImageButton btnIntentAdd = findViewById(R.id.btnIntentAdd);
+        btnIntentAdd.setOnClickListener(v -> intentAdd());
 
         imgList = getImgList();
         currentIndex = 0;
@@ -57,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadImg(){
         Picasso.get().load(imgList.get(currentIndex)).into(imgView);
+        imgIndex.setText("Image "+ (currentIndex + 1));
     }
 
     private void nextImg() {
@@ -80,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private void getImageListFromFile(ArrayList<String> imageList) {
         try {
             InputStream inputStream = openFileInput(fileName);
+            System.out.println("FILEEEEEE"+this.getFileStreamPath(fileName).getAbsolutePath());
 
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -95,6 +107,40 @@ public class MainActivity extends AppCompatActivity {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             Toast.makeText(this, "Image not found.", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void intentAdd(){
+        Intent intent = new Intent(this, AddActivity.class);
+        intent.putExtra("title", "Add image");
+        startActivityForResult(intent, 123);
+    }
+    @Override
+    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == 123) {
+            addImgToList(data.getStringExtra("link"));
+        } else {
+            Toast.makeText(this, "Add failure !!!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void addImgToList(String link){
+        imgList.add(link);
+        writeURLToFile(link);
+        Toast.makeText(this, "Add successful !!!", Toast.LENGTH_SHORT).show();
+    }
+
+    protected void writeURLToFile(String url) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput(fileName, MODE_APPEND));
+            outputStreamWriter.write(url);
+            outputStreamWriter.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
