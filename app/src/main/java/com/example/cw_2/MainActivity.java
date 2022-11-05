@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,20 +49,19 @@ public class MainActivity extends AppCompatActivity {
         ImageButton btnIntentAdd = findViewById(R.id.btnIntentAdd);
         btnIntentAdd.setOnClickListener(v -> intentAdd());
 
+        ImageButton btnCamera = findViewById(R.id.btnCamera);
+        btnCamera.setOnClickListener(v -> cameraClicked());
+
         imgList = getImgList();
         currentIndex = 0;
 
         loadImg();
-
-        ImageButton btnCamera = findViewById(R.id.btnCamera);
-        btnCamera.setOnClickListener(v -> cameraClicked());
-
     }
 
     public ArrayList<String> getImgList(){
         ArrayList<String> arrImg = new ArrayList<>();
-        arrImg.add("https://toplist.vn/images/800px/thap-nghieng-pisa-489711.jpg");
         arrImg.add("https://e.khoahoc.tv/photos/image/2016/06/24/kim-tu-thap-650.jpg");
+        arrImg.add("https://toplist.vn/images/800px/thap-nghieng-pisa-489711.jpg");
 
         getImageListFromFile(arrImg);
         Toast.makeText(this, "Get images successfully !!!", Toast.LENGTH_SHORT).show();
@@ -77,7 +77,9 @@ public class MainActivity extends AppCompatActivity {
         if(imgList.get(currentIndex).contains("https")){
             Picasso.get().load(imgList.get(currentIndex)).into(imgView);
         } else {
-            //imgView.setImageBitmap(imgList.get(currentIndex));
+            String photoName = imgList.get(currentIndex);
+            File file = new File(getFilesDir(), photoName);
+            imgView.setImageURI(Uri.parse(file.getAbsolutePath()));
         }
         imgIndex.setText("Image "+ (currentIndex + 1));
     }
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == Activity.RESULT_OK && requestCode == 123) {
             addImgToList(data.getStringExtra("link"));
         } else if(resultCode == Activity.RESULT_OK && requestCode == 456){
-            Bitmap photo = data.getParcelableExtra("photo");
+            String photo = data.getStringExtra("photo");
             savePhotoToFile(photo);
         }
         else {
@@ -167,8 +169,8 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 456);
     }
 
-    private void savePhotoToFile(Bitmap photo){
-        //imgList.add(photo);
-        Toast.makeText(this, "Photo" + photo, Toast.LENGTH_SHORT).show();
+    private void savePhotoToFile(String photo){
+        imgList.add(photo);
+        Toast.makeText(this, "Save successful !!!", Toast.LENGTH_SHORT).show();
     }
 }

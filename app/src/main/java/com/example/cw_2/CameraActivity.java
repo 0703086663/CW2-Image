@@ -13,8 +13,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.FileOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class CameraActivity extends AppCompatActivity {
 
@@ -85,9 +90,24 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void savePhoto(){
-        Intent intent = new Intent();
-        intent.putExtra("photo", photo);
-        setResult(Activity.RESULT_OK, intent);
-        finish();
+        try{
+            Date date = Calendar.getInstance().getTime();
+            DateFormat df = new SimpleDateFormat("yyyyMMDDHHmmss");
+            String filename = df.format(date);
+
+            FileOutputStream stream = this.openFileOutput(filename, MODE_PRIVATE);
+            photo.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            stream.close();
+            photo.recycle();
+
+            Intent intent = new Intent();
+            intent.putExtra("photo", filename);
+            setResult(Activity.RESULT_OK, intent);
+            finish();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
+
 }
