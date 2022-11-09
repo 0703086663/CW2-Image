@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput(fileName, MODE_APPEND));
             outputStreamWriter.write(url);
+            outputStreamWriter.write(10); // write line - 10 == line break (ASCII)
             outputStreamWriter.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
